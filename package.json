@@ -1,0 +1,38 @@
+{
+  "name": "chrome-device-spoofer",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm run clean & npm run copy-html & tsc",
+    "watch": "npm run clean & tsc-watch & npm-watch build-html",
+    "build-html": "rm -f dist/*.html & npm run copy-html",
+    "copy-html": "copyfiles -f src/*.html dist",
+    "clean": "rm -rf dist"
+  },
+  "watch": {
+    "build-html": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "html",
+      "quiet": false
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/98o718/chrome-device-spoofer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/98o718/chrome-device-spoofer/issues"
+  },
+  "homepage": "https://github.com/98o718/chrome-device-spoofer#readme",
+  "devDependencies": {
+    "@types/chrome": "0.0.158",
+    "copyfiles": "^2.4.1",
+    "npm-watch": "^0.11.0",
+    "tsc-watch": "^4.5.0",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {}
+}
