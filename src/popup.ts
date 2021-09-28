@@ -3,16 +3,21 @@ const platformInput = document.querySelector<HTMLInputElement>('#platform');
 const submitButton = document.querySelector('#submit');
 
 submitButton?.addEventListener('click', async () => {
-	const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-	if (tab.id === undefined) {
+	if (userAgentInput === null || platformInput === null) {
 		return;
 	}
 
+	const userAgent = userAgentInput.value === '' ? undefined : userAgentInput.value;
+	const platform = platformInput.value === '' ? undefined : platformInput.value;
+
 	await chrome.storage.local.set({
-		platform: platformInput?.value,
-		userAgent: userAgentInput?.value,
+		platform,
+		userAgent,
 	});
 
-	chrome.tabs.reload(tab.id);
+	chrome.runtime.sendMessage({
+		type: "change-device",
+		platform,
+		userAgent,
+	});
 });

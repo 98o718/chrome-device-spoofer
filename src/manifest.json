@@ -1,0 +1,13 @@
+{
+	"name": "Chrome Device Spoofer",
+	"description": "Spoof your device",
+	"version": "1.0",
+	"manifest_version": 3,
+	"permissions": ["storage", "activeTab", "tabs", "debugger"],
+	"action": {
+		"default_popup": "popup.html"
+	},
+	"background": {
+		"service_worker": "background.js"
+	}
+}
