@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2019",
     "module": "commonjs",
+	"noEmit": true,
     "rootDir": "src",
     "outDir": "dist",
     "baseUrl": "./",
