@@ -45,10 +45,14 @@ async function handleDeviceChange(tabId: number): Promise<void> {
 
 	chrome.debugger.attach({ tabId }, '1.3', () => {
 		chrome.debugger.sendCommand({ tabId }, 'Emulation.setUserAgentOverride', {
-			userAgent: userAgent ?? navigator.userAgent,
-			platform: platform ?? navigator.platform,
+			userAgent: notEmptyValueOrDefault(navigator.userAgent, userAgent),
+			platform: notEmptyValueOrDefault(navigator.platform, platform),
 		});
 	});
+}
+
+function notEmptyValueOrDefault(defaultValue: string, value?: string): string {
+	return value === undefined || value === '' ? defaultValue : value;
 }
 
 function getAllLocalStorageData(): Promise<State> {

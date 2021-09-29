@@ -1,19 +1,23 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
-/* eslint-enable @typescript-eslint/no-var-requires */
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
 	mode: 'production',
 	entry: {
 		background: './src/background.ts',
-		popup: './src/popup.ts',
+		popup: './src/popup.tsx',
 	},
 	module: {
 		rules: [
 			{
 				test: /\.tsx?$/,
-				use: 'ts-loader',
+				use: {
+					loader: 'babel-loader',
+					options: {
+						presets: ['solid', '@babel/preset-typescript'],
+					},
+				},
 				exclude: /node_modules/,
 			},
 		],
@@ -26,12 +30,13 @@ module.exports = {
 		path: path.resolve(__dirname, 'dist'),
 	},
 	plugins: [
+		new CleanWebpackPlugin(),
 		new CopyPlugin({
 			patterns: [
 				{
 					from: 'src',
 					globOptions: {
-						ignore: ['**/*.ts'],
+						ignore: ['**/*.ts', '**/*.tsx'],
 					},
 				},
 			],
