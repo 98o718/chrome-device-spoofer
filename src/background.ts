@@ -1,50 +1,64 @@
-chrome.runtime.onMessage.addListener(async (message) => {
+import { Message, MessageType, State } from './types';
+
+chrome.runtime.onMessage.addListener(async (message: Message) => {
 	const tabId = await getActiveTabId();
 
-	if (message.type === 'change-device' && tabId !== undefined) {
-		handleDeviceChange(tabId, message.platform, message.userAgent);
+	if (message.type === MessageType.ChangeState && tabId !== undefined) {
+		await handleDeviceChange(tabId);
 	}
 });
 
-chrome.tabs.onActivated.addListener(async ({ tabId }: chrome.tabs.TabActiveInfo) => {
-	const { platform, userAgent } = await getAllLocalStorageData();
+chrome.tabs.onActivated.addListener(({ tabId }: chrome.tabs.TabActiveInfo) => handleDeviceChange(tabId));
 
-	handleDeviceChange(tabId, platform, userAgent);
+chrome.debugger.onDetach.addListener(async () => {
+	const { enabled } = await getAllLocalStorageData();
+
+	if (!enabled) {
+		return;
+	}
+
+	await chrome.storage.local.set({ enabled: false });
 });
 
 async function getActiveTabId(): Promise<number | undefined> {
-	const [{ id }] = await chrome.tabs.query({active: true, currentWindow: true});
+	const tabs = await chrome.tabs.query({ active: true });
 
-	return id;
+	if (tabs.length === 0) {
+		return undefined;
+	}
+
+	return tabs[0].id;
 }
 
-function handleDeviceChange(tabId: number, platform?: string, userAgent?: string): void {
+async function handleDeviceChange(tabId: number): Promise<void> {
+	const { userAgent, platform, enabled } = await getAllLocalStorageData();
+
 	chrome.debugger.detach({ tabId }, () => {
-		if(chrome.runtime.lastError) {
+		if (chrome.runtime.lastError) {
 			// there is nothing to detach
 		}
 	});
 
+	if (!enabled) {
+		return;
+	}
+
 	chrome.debugger.attach({ tabId }, '1.3', () => {
-		chrome.debugger.sendCommand(
-			{ tabId },
-			'Emulation.setUserAgentOverride',
-			{
-				userAgent: userAgent ?? navigator.userAgent,
-				platform: platform ?? navigator.platform,
-			}
-		);
+		chrome.debugger.sendCommand({ tabId }, 'Emulation.setUserAgentOverride', {
+			userAgent: userAgent ?? navigator.userAgent,
+			platform: platform ?? navigator.platform,
+		});
 	});
 }
 
-function getAllLocalStorageData(): Promise<any> {
-	return new Promise((resolve, reject) => {
-		chrome.storage.local.get(null, (items) => {
+function getAllLocalStorageData(): Promise<State> {
+	return new Promise((resolve: (state: State) => void, reject: (reason?: unknown) => void) => {
+		chrome.storage.local.get(null, (state: State) => {
 			if (chrome.runtime.lastError) {
 				return reject(chrome.runtime.lastError);
 			}
 
-			resolve(items);
+			resolve(state);
 		});
 	});
 }
